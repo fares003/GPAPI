@@ -1,0 +1,23 @@
+# Ignore Python virtual environment
+pyvenv/
+my-env/
+Lib/
+Scripts/
+_pycache_/
+
+# Ignore system-generated files
+*.pyc
+*.pyo
+*.log
+*.DS_Store
+*.swp
+*.swo
+
+# Ignore cache and temporary files
+CACHE_DIR.TAG
+*.tmp
+
+# Ignore environment and dependency files
+.env
+venv/
+
