@@ -24,4 +24,6 @@ def extract_text_from_pdf(pdf_file):
     # Properly split sentences
     sentences = re.split(r'(?<=[.!?])\s+', text.strip())
 
+
     return [s.strip() for s in sentences if s.strip()]
+
