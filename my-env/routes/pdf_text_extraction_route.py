@@ -22,4 +22,6 @@ def extract_text():
         return jsonify({"extracted_text": extracted_sentences})
 
     except Exception as e:
+
         return jsonify({"error": str(e)}), 500
+
