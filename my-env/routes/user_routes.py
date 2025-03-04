@@ -14,4 +14,3 @@ def get_user():
 
     return jsonify(user)
 
-
