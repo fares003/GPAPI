@@ -1,6 +1,6 @@
 from flask import Flask
 from routes.user_routes import user_bp
-from routes.ocr_routes import ocr_bp  # Import the OCR router
+from routes.ocr_routes import ocr_bp  # Ensure the correct file name is used
 
 app = Flask(__name__)
 
