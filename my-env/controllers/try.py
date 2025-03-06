@@ -1,90 +1,60 @@
 import fitz  # PyMuPDF
-import pytesseract  # Import Tesseract OCR for text recognition from images
-import cv2  # OpenCV for image processing
-import numpy as np  # NumPy for numerical operations (used in image processing)
-from docx import Document  # Import python-docx to extract text from DOCX files
-from PIL import Image  # Import Pillow for image manipulation
-import os  # Import OS module for file operations
-import io
+import pytesseract
+import cv2
+import numpy as np
+from pdf2image import convert_from_path
+from PIL import Image
+import os
 
-# Set the path to Tesseract OCR executable (ensure this matches your installation path)
+# Set paths for Tesseract OCR and Poppler
 pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+POPPLER_PATH = r"C:\Users\MOHAMED\Downloads\poppler-24.08.0\Library\bin"
 
-def preprocess_image(image_path):
-    """Preprocess the image to enhance OCR accuracy by applying grayscale, thresholding, and blurring."""
-    image = cv2.imread(image_path)
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def preprocess_image(image):
+    """Preprocess image for better OCR accuracy."""
+    gray = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2GRAY)
     gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
                                  cv2.THRESH_BINARY, 31, 2)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
-    return gray
+    return Image.fromarray(gray)
 
-def extract_text_from_image(image_path):
-    """Extract text from an image file using Tesseract OCR."""
-    processed_image = preprocess_image(image_path)
+def extract_text_from_image(image):
+    """Extract text from an image using Tesseract OCR."""
+    processed_image = preprocess_image(image)
     text = pytesseract.image_to_string(processed_image, lang='eng')
-    return " ".join(text.splitlines())
-
-def extract_text_from_docx(docx_path):
-    """Extract text from a DOCX file using python-docx."""
-    doc = Document(docx_path)
-    return "\n".join([para.text for para in doc.paragraphs]).strip()
-
-""" def extract_text_from_pdf(pdf_path):
-    ""Extract text from a PDF file, using OCR if necessary."
-    doc = fitz.open(pdf_path)
-    extracted_text = ""
-    
-    for page in doc:
-        text = page.get_text("text")
-        if text.strip():
-            extracted_text += text + "\n"
-        else:
-            pix = page.get_pixmap()
-            image_path = "temp_page.png"
-            Image.frombytes("RGB", [pix.width, pix.height], pix.samples).save(image_path)
-            extracted_text += extract_text_from_image(image_path) + "\n"
-            os.remove(image_path)
-    
-    return extracted_text.strip() """
-import fitz  # PyMuPDF
-import pytesseract
-from pdf2image import convert_from_path
-from PIL import Image
+    return text.strip()
 
 def extract_text_from_pdf(pdf_path):
-    """Extract text from a PDF file, handling both selectable text and images."""
+    """Extract text from a PDF, using OCR for images if necessary."""
     doc = fitz.open(pdf_path)
-    text = ""
-    
-    for page in doc:
-        text += page.get_text("text") + "\n"
-        
-        # If no text is found, try OCR
-        if not page.get_text("text").strip():
-            images = convert_from_path(pdf_path, first_page=page.number+1, last_page=page.number+1)
+    extracted_text = ""
+
+    for page_num, page in enumerate(doc, start=1):
+        text = page.get_text("text")
+        if text.strip():
+            extracted_text += f"\n--- Page {page_num} ---\n" + text
+        else:
+            images = convert_from_path(pdf_path, first_page=page_num, last_page=page_num, poppler_path=POPPLER_PATH)
             for image in images:
-                text += pytesseract.image_to_string(image) + "\n"
-    
-    return text
+                extracted_text += f"\n--- Page {page_num} (OCR) ---\n" + extract_text_from_image(image)
+
+    return extracted_text.strip()
 
 def extract_text(file_path):
     """Determine file type and extract text accordingly."""
     if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
-        return extract_text_from_image(file_path)
+        image = Image.open(file_path)
+        return extract_text_from_image(image)
     elif file_path.lower().endswith('.pdf'):
         return extract_text_from_pdf(file_path)
-    elif file_path.lower().endswith('.docx'):
-        return extract_text_from_docx(file_path)
     else:
         return "Unsupported file format."
 
 def main():
     file_paths = [
-        r"C:\Users\MOHAMED\Desktop\pdf tests\tests\test4.pdf",
+        r"C:\Users\MOHAMED\Downloads\med.pdf",
         r"C:\Users\MOHAMED\Downloads\Farag Elyan.pdf",
-        r"C:\Users\MOHAMED\Desktop\Image_Tests\Tests\ts7.png",
-        r"C:\Users\MOHAMED\Downloads\MS1 Appendix.docx"
+        r"C:\Users\MOHAMED\Downloads\Screenshot 2025-03-06 195532.png"
     ]
     
     for file in file_paths:
