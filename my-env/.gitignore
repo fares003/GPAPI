@@ -19,4 +19,6 @@ CACHE_DIR.TAG
 
 # Ignore environment and dependency files
 .env
+
 venv/
+
