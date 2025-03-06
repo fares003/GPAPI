@@ -15,7 +15,7 @@ app.register_blueprint(ocr_bp, url_prefix='/ocr')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 # <<<<<<< khalil1
 
 # import torch
